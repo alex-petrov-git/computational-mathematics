@@ -1,0 +1,167 @@
+\documentclass[a4paper,11pt]{article} % добавить leqno в [] для нумерации слева
+
+%%% Работа с русским языком
+\usepackage{cmap}					% поиск в PDF
+\usepackage{mathtext} 				% русские буквы в формулах
+\usepackage[T2A]{fontenc}			% кодировка
+\usepackage[utf8]{inputenc}			% кодировка исходного текста
+\usepackage[russian,english]{babel}	% локализация и переносы
+
+%%% Дополнительная работа с математикой
+\usepackage{amsmath,amsfonts,amssymb,amsthm,mathtools} % AMS
+\usepackage{icomma} % "Умная" запятая: $0,2$ --- число, $0, 2$ --- перечисление
+
+%% Номера формул
+\mathtoolsset{showonlyrefs=true} % Показывать номера только у тех формул, на которые есть \eqref{} в тексте.
+
+%% Шрифты
+\usepackage{euscript}	 % Шрифт Евклид
+\usepackage{mathrsfs} % Красивый матшрифт
+
+%% Свои команды
+\DeclareMathOperator{\sgn}{\mathop{sgn}}
+\newcommand{\eqdef}{\stackrel{\rm def}{=}} 
+
+
+%% Перенос знаков в формулах (по Львовскому)
+\newcommand*{\hm}[1]{#1\nobreak\discretionary{}
+	{\hbox{$\mathsurround=0pt #1$}}{}}
+
+%%% Заголовок
+\author{Alexander Petrov}
+\title{Computational Mathematics: Ordinary Differential Equations}
+
+
+%%% Теоремы
+\theoremstyle{plain} % Это стиль по умолчанию, его можно не переопределять.
+\newtheorem{theorem}{Th}[section]
+\newtheorem{lemma}{Le}[section]
+\newtheorem{proposition}{Утверждение}[section]
+\newtheorem{note}{Note}[section]
+
+
+\theoremstyle{definition} % "Определение"
+\newtheorem{cor}{Следствие}[theorem]
+\newtheorem{problem}{Задача}[section]
+\newtheorem{defin}{Def}[section]
+\newtheorem{pr}{Pr}[defin]
+\newtheorem{ex}{Ex}[section]
+\newtheorem{n}{№}
+
+\theoremstyle{remark} % "Примечание"
+\newtheorem*{nonum}{Решение}
+\newtheorem*{oboz}{Обозначение}
+\newtheorem*{ev}{Доказательство}
+\newtheorem*{id}{Идея доказательства}
+
+\usepackage{mathrsfs}
+
+%%% Работа с картинками
+\usepackage{graphicx}  % Для вставки рисунков
+\graphicspath{{Mimage/}}  % папки с картинками
+\setlength\fboxsep{3pt} % Отступ рамки \fbox{} от рисунка
+\setlength\fboxrule{1pt} % Толщина линий рамки \fbox{}
+\usepackage{wrapfig} % Обтекание рисунков и таблиц текстом
+
+\usepackage{arcs}
+
+\usepackage{geometry} % Простой способ задавать поля
+\geometry{top=25mm}
+\geometry{bottom=25mm}
+\geometry{left=20mm}
+\geometry{right=20mm}
+
+\usepackage{fancyhdr} % Колонтитулы
+\pagestyle{fancy}
+\renewcommand{\headrulewidth}{0.3mm}  % Толщина линейки, отчеркивающей верхний колонтитул
+\lfoot{}
+\rfoot{}
+\rhead{}
+\chead{}
+\lhead{}
+
+\begin{document}
+
+\maketitle
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+\section{Main definitions.}
+
+Let us consider a problem with given initial conditions (Cauchy's problem):
+\begin{equation}
+\label{cauchy_problem}
+	\left\{
+	\begin{aligned}
+	& \mathscr{D} u = f(x, u), \\
+	& u(x_0) = u_0, \\
+	& x \in [0, X],
+	\end{aligned}
+	\right.
+\end{equation}
+where $\mathscr{D}$ is some differential operator (generally not linear). Our purpose is to discretize domain and equation: 
+\begin{equation}
+\label{cauchy_problem_discretized}
+\left\{
+\begin{aligned}
+& D y = f_h, \\
+& y_0 = u^0, \\
+& \{x_i\}_{i=0}^N:\ h_i = x_{i+1} - x_i
+\end{aligned}
+\right.
+\end{equation}
+
+Let us denote $[u]_h$ as values of the exact solution $u(x)$ at grid nodes $\{x_i\}_{i=0}^N$, and $h = \underset{i}{\max}\ h_i$.
+
+\begin{defin}
+	Solution of \eqref{cauchy_problem_discretized} \textbf{converges} to solution of \eqref{cauchy_problem} if 
+	\begin{equation}
+		\Vert y - [u]_h \Vert_Y \rightarrow 0,\ h \rightarrow 0
+	\end{equation}
+\end{defin}
+
+\begin{note}
+	It is almost imposible and useless to prove convergense directly. Indeed, if you have $[u]_h$ why do you need to solve \eqref{cauchy_problem_discretized}?
+\end{note}
+
+\begin{defin}
+	\textbf{Residual} of \eqref{cauchy_problem_discretized} is:
+	\begin{equation}
+		r_h = D [u]_h - f_h
+	\end{equation}
+\end{defin}
+
+\begin{defin}
+	Solution of \eqref{cauchy_problem_discretized} \textbf{approximates} solution of \eqref{cauchy_problem} if 
+	\begin{equation}
+		\Vert r_h \Vert_{F_h} \rightarrow 0,\ h \rightarrow 0.
+	\end{equation}
+	 If $\exists\ C_1 > 0:\ \Vert r_h \Vert_{F_h} \le C_1 h^k$, the number k is called the order of approximation.
+\end{defin}
+
+\begin{defin}
+	Solution of \eqref{cauchy_problem_discretized} is \textbf{stable} if $\exists\ \varepsilon,\ h_0:\ \forall h \le h_0,\ \forall \varepsilon^{(1)}, \varepsilon^{(2)}: \Vert \varepsilon^{(i)} \Vert \le \varepsilon,\ i = 1,2$ solutions of 
+	\begin{equation}
+		\begin{aligned}
+		& D y^{(1)} = f_h + \varepsilon^{(1)} \\
+		& D y^{(2)} = f_h + \varepsilon^{(2)}
+		\end{aligned}
+	\end{equation}
+	<<do not differ much>>:
+	\begin{equation}
+		\Vert y^{(2)} - y^{(1)} \Vert \le C_2 (\Vert \varepsilon^{(1)}\Vert + \Vert \varepsilon^{(2)}\Vert)
+	\end{equation}
+\end{defin}
+
+\section{Runge-Kutta methods}
+
+\begin{defin}
+	Explicit Runge-Ketta method with $s$ stages and defining parameters
+\end{defin}
+
+
+\end{document}
