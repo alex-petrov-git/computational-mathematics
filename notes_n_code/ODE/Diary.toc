@@ -1,2 +1,2 @@
 \babel@toc {english}{}
-\contentsline {section}{\numberline {1}Main definitions}{3}
+\contentsline {section}{\numberline {1}Main definitions.}{3}
